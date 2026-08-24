@@ -1,0 +1,122 @@
+/* Custom Styles for Shree Siddhi Vinayak Youth Association Portal */
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2), 0 0 30px rgba(234, 88, 12, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.4), 0 0 50px rgba(234, 88, 12, 0.3);
+  }
+}
+
+@keyframes scaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pulse-festive-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(234, 88, 12, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(234, 88, 12, 0.6);
+}
+
+/* Sidebar Navigation Item */
+.sidebar-nav-item {
+  color: #94a3b8;
+  border: 1px solid transparent;
+}
+.sidebar-nav-item:hover {
+  color: #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.sidebar-nav-item.active {
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.15), rgba(249, 115, 22, 0.1));
+  border-color: rgba(234, 179, 8, 0.35);
+  color: #facc15;
+}
+
+/* Festive Card Styling */
+.festive-card {
+  background: linear-gradient(145deg, rgba(30, 7, 14, 0.7), rgba(15, 3, 7, 0.85));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(250, 204, 21, 0.15);
+  transition: all 0.2s ease-in-out;
+}
+.festive-card:hover {
+  border-color: rgba(250, 204, 21, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(245, 158, 11, 0.08);
+}
+
+/* Progress Bar */
+#progressBarFill {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Keep login identity colors clear in browsers that support option styling. */
+.login-member-option {
+  color: #67e8f9;
+}
+.login-admin-option {
+  color: #facc15;
+}
+
+/* Status Badges */
+.badge-paid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-partial {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-pending {
+  background: rgba(244, 63, 94, 0.15);
+  color: #FB7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+/* Print Rules */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  aside, #loginGateScreen, button, .modal {
+    display: none !important;
+  }
+  .festive-card, section {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+  }
+}

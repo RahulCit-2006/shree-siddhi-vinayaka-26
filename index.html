@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shree Siddhi Vinayak Youth Association - Sasalmari Camp</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Firebase App & Firestore SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['"Outfit"', 'sans-serif'],
+            devanagari: ['"Cinzel"', 'serif'],
+          },
+          colors: {
+            brand: {
+              950: '#0C0306',
+              900: '#17050D',
+              850: '#230814',
+              800: '#340C1E',
+            },
+            saffron: {
+              400: '#FB923C',
+              500: '#F97316',
+              600: '#EA580C',
+            },
+            gold: {
+              300: '#FDE047',
+              400: '#FACC15',
+              500: '#EAB308',
+              600: '#CA8A04',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#0b0306] text-slate-100 min-h-screen flex flex-col md:flex-row font-sans selection:bg-saffron-500 selection:text-white">
+
+  <!-- 1. MANDATORY MEMBER LOGIN GATE (NO HINTS SHOWN) -->
+  <div id="loginGateScreen" class="fixed inset-0 z-50 bg-[#0a0205] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-md w-full bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-gold-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-scaleUp">
+      
+      <!-- Sacred Om Emblem -->
+      <div class="text-center space-y-3">
+        <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-tr from-gold-500 via-saffron-500 to-amber-400 p-1 shadow-2xl shadow-gold-500/30 flex items-center justify-center pulse-festive-glow">
+          <div class="w-full h-full bg-brand-950 rounded-full flex items-center justify-center border border-gold-400/40">
+            <span class="text-4xl text-transparent bg-clip-text bg-gradient-to-tr from-gold-300 via-amber-400 to-saffron-400 font-bold font-devanagari select-none">ॐ</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white font-heading tracking-tight uppercase">
+            Shree Siddhi Vinayak
+          </h2>
+          <p class="text-sm font-bold text-gold-400 tracking-wider uppercase">Youth Association • Sasalmari Camp</p>
+          <div class="mt-2 inline-block px-3 py-0.5 rounded-full bg-saffron-500/15 text-saffron-300 border border-saffron-500/30 text-[11px] font-semibold">
+            🔒 Committee Portal Access
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Form (No hints visible) -->
+      <form id="formMemberLogin" onsubmit="window.app && window.app.handleMemberLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1.5">Select Your Name</label>
+          <select id="loginMemberSelect" required class="w-full px-3.5 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white focus:outline-none focus:border-gold-400">
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1.5">Password / PIN</label>
+          <input type="password" id="loginPasswordInput" placeholder="••••••••" required class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-center text-base font-bold text-white placeholder-neutral-600 tracking-widest focus:outline-none focus:border-gold-400">
+        </div>
+
+        <div id="loginErrorMsg" style="display: none;" class="text-xs text-rose-400 bg-rose-950/40 border border-rose-500/30 p-2.5 rounded-xl text-center font-medium"></div>
+
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-gold-500 via-saffron-500 to-amber-500 hover:brightness-110 text-neutral-950 rounded-xl font-black text-sm transition-all shadow-lg shadow-gold-500/20 active:scale-95 cursor-pointer">
+          Sign In
+        </button>
+      </form>
+
+      <div class="text-center border-t border-white/10 pt-3">
+        <p class="text-[11px] text-neutral-400">Authorized committee members only.</p>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- 2. MAIN APP WITH LEFT SIDEBAR LAYOUT -->
+  <div id="mainAppContent" style="display: none;" class="flex-1 min-h-screen flex flex-col md:flex-row w-full">
+    
+    <!-- Mobile Top Navigation Header -->
+    <div class="md:hidden bg-brand-950/95 border-b border-gold-500/20 px-4 py-3 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gold-500 to-saffron-500 flex items-center justify-center font-bold text-neutral-950 text-sm">
+          ॐ
+        </div>
+        <div>
+          <h1 class="text-xs font-bold text-white uppercase font-heading leading-tight truncate">Shree Siddhi Vinayak</h1>
+          <p class="text-[10px] text-gold-400 font-semibold leading-tight">Sasalmari Camp 2026</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="window.app && window.app.openWhatsAppModal()" class="p-2 rounded-xl bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 text-xs">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+        </button>
+        <button onclick="window.app && window.app.toggleMobileMenu()" class="p-2 rounded-xl bg-white/10 text-neutral-300 border border-white/10 text-xs">
+          <i class="fa-solid fa-bars text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- LEFT SIDEBAR NAVIGATION MENU -->
+    <aside id="sidebarNav" class="hidden md:flex flex-col w-64 lg:w-72 bg-brand-900/90 border-r border-gold-500/20 p-5 space-y-6 sticky top-0 h-screen shrink-0 z-30 overflow-y-auto">
+      
+      <!-- Association Branding -->
+      <div class="text-center space-y-2 border-b border-white/10 pb-4">
+        <div class="w-14 h-14 mx-auto rounded-full bg-gradient-to-tr from-gold-500 via-saffron-500 to-amber-400 p-0.5 shadow-lg shadow-gold-500/20 flex items-center justify-center">
+          <div class="w-full h-full bg-brand-950 rounded-full flex items-center justify-center border border-gold-400/40">
+            <span class="text-2xl text-transparent bg-clip-text bg-gradient-to-tr from-gold-300 to-saffron-400 font-bold font-devanagari select-none">ॐ</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-xs font-extrabold text-white font-heading uppercase tracking-wide leading-tight">
+            Shree Siddhi Vinayak
+          </h2>
+          <p class="text-[11px] font-bold text-gold-400 leading-tight">Youth Association</p>
+          <p class="text-[10px] text-neutral-400">Sasalmari Camp • 2026</p>
+        </div>
+      </div>
+
+      <!-- Navigation Menu Items (LEFT SIDEBAR) -->
+      <nav class="space-y-1.5 flex-1">
+        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-3 mb-1">Navigation Menu</p>
+        
+        <button onclick="window.app && window.app.switchView('dashboard')" id="navBtn-dashboard" class="sidebar-nav-item active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all text-left cursor-pointer">
+          <i class="fa-solid fa-chart-pie w-4 text-center text-sm"></i>
+          <span>Dashboard</span>
+        </button>
+
+        <button onclick="window.app && window.app.switchView('contributors')" id="navBtn-contributors" class="sidebar-nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all text-left cursor-pointer">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-users w-4 text-center text-sm"></i>
+            <span>Contributors</span>
+          </div>
+          <span id="sidebarMemberCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-300 font-semibold">18</span>
+        </button>
+
+        <button onclick="window.app && window.app.switchView('expenses')" id="navBtn-expenses" class="sidebar-nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all text-left cursor-pointer">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-receipt w-4 text-center text-sm"></i>
+            <span>Expenses</span>
+          </div>
+          <span id="sidebarExpenseCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-950/80 text-rose-300 font-semibold">0</span>
+        </button>
+
+        <button onclick="window.app && window.app.switchView('funds')" id="navBtn-funds" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all text-left cursor-pointer">
+          <i class="fa-solid fa-wallet w-4 text-center text-sm"></i>
+          <span>UPI / Cash Funds</span>
+        </button>
+
+        <button onclick="window.app && window.app.switchView('activity')" id="navBtn-activity" class="sidebar-nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all text-left cursor-pointer">
+          <i class="fa-solid fa-clock-rotate-left w-4 text-center text-sm"></i>
+          <span>Activity Trail</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="border-t border-white/10 pt-4 space-y-3">
+        <div class="bg-black/40 p-3 rounded-2xl border border-white/5 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] text-neutral-400">Logged in as:</span>
+            <span id="navUserBadge" class="text-[9px] px-1.5 py-0.2 rounded font-bold bg-white/10 text-neutral-300">Member</span>
+          </div>
+          <div id="navLoggedUser" class="text-xs font-bold text-white truncate">User</div>
+          <div id="adminModeBanner" style="display: none;" class="text-[10px] text-amber-300 font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span>Admin Controls Active</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="window.app && window.app.openWhatsAppModal()" class="py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+            <i class="fa-brands fa-whatsapp text-sm"></i>
+            <span>Share</span>
+          </button>
+          
+          <button onclick="window.app && window.app.logout()" class="py-2 bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+
+        <button onclick="window.app && window.app.openCloudModal()" class="w-full py-1.5 text-[11px] text-neutral-400 hover:text-white flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-gear text-[10px]"></i>
+          <span>Settings & Backup</span>
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Mobile Drawer -->
+    <div id="mobileMenuDrawer" class="hidden md:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm">
+      <div class="w-64 bg-brand-950 h-full p-5 flex flex-col justify-between border-r border-gold-500/30">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-white/10 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-gold-400 font-bold font-devanagari text-lg">ॐ</span>
+              <span class="text-xs font-bold text-white">Menu</span>
+            </div>
+            <button onclick="window.app && window.app.toggleMobileMenu()" class="text-neutral-400 text-lg">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <nav class="space-y-1.5">
+            <button onclick="window.app && window.app.switchView('dashboard'); window.app.toggleMobileMenu();" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-white bg-white/5">
+              <i class="fa-solid fa-chart-pie w-4"></i> Dashboard
+            </button>
+            <button onclick="window.app && window.app.switchView('contributors'); window.app.toggleMobileMenu();" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-white bg-white/5">
+              <i class="fa-solid fa-users w-4"></i> Contributors
+            </button>
+            <button onclick="window.app && window.app.switchView('expenses'); window.app.toggleMobileMenu();" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-white bg-white/5">
+              <i class="fa-solid fa-receipt w-4"></i> Expenses
+            </button>
+            <button onclick="window.app && window.app.switchView('funds'); window.app.toggleMobileMenu();" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-white bg-white/5">
+              <i class="fa-solid fa-wallet w-4"></i> UPI / Cash
+            </button>
+            <button onclick="window.app && window.app.switchView('activity'); window.app.toggleMobileMenu();" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-white bg-white/5">
+              <i class="fa-solid fa-clock-rotate-left w-4"></i> Activity Trail
+            </button>
+          </nav>
+        </div>
+
+        <div class="space-y-2 pt-4 border-t border-white/10">
+          <button onclick="window.app && window.app.logout()" class="w-full py-2 bg-white/10 text-neutral-300 rounded-xl text-xs font-semibold">
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- MAIN CONTENT AREA (SINGLE VIEW ONLY) -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full overflow-y-auto">
+      
+      <!-- VIEW 1: DASHBOARD -->
+      <section id="viewDashboard" class="app-view-container space-y-6">
+        
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-900 via-brand-850 to-black border border-gold-500/30 p-6 shadow-2xl">
+          <div class="flex items-center gap-4 border-b border-white/10 pb-4">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-gold-500 to-saffron-500 p-0.5 shadow-lg shadow-gold-500/20 shrink-0">
+              <div class="w-full h-full bg-brand-950 rounded-2xl flex items-center justify-center">
+                <span class="text-3xl text-gold-400 font-bold font-devanagari select-none">ॐ</span>
+              </div>
+            </div>
+            <div>
+              <div class="text-[11px] font-bold text-gold-400 uppercase tracking-widest">Shree Siddhi Vinayak Youth Association</div>
+              <h2 class="text-xl sm:text-2xl font-black text-white font-heading uppercase">
+                Financial Dashboard 2026
+              </h2>
+              <p class="text-xs text-neutral-400 mt-0.5">Sasalmari Camp • Target: ₹6,000 per member</p>
+            </div>
+          </div>
+
+          <!-- 4 Financial KPI Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+            
+            <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-4">
+              <div class="text-xs text-neutral-400 mb-1 flex items-center justify-between">
+                <span>Target Budget</span>
+                <i class="fa-solid fa-bullseye text-amber-400"></i>
+              </div>
+              <div id="statTotalTarget" class="text-lg sm:text-xl font-black text-white font-heading">₹1,08,000</div>
+              <div id="statTargetSub" class="text-[10px] text-amber-300/80 mt-0.5">18 members × ₹6,000</div>
+            </div>
+
+            <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4">
+              <div class="text-xs text-emerald-300/80 mb-1 flex items-center justify-between">
+                <span>Total Collected</span>
+                <i class="fa-solid fa-hand-holding-dollar text-emerald-400"></i>
+              </div>
+              <div id="statTotalCollected" class="text-lg sm:text-xl font-black text-emerald-400 font-heading">₹0</div>
+              <div id="statCollectedSub" class="text-[10px] text-emerald-300/70 mt-0.5">0% achieved</div>
+            </div>
+
+            <div class="bg-rose-950/40 border border-rose-500/30 rounded-2xl p-4">
+              <div class="text-xs text-rose-300/80 mb-1 flex items-center justify-between">
+                <span>Total Spent</span>
+                <i class="fa-solid fa-receipt text-rose-400"></i>
+              </div>
+              <div id="statTotalSpent" class="text-lg sm:text-xl font-black text-rose-400 font-heading">₹0</div>
+              <div id="statSpentSub" class="text-[10px] text-rose-300/70 mt-0.5">0 bills logged</div>
+            </div>
+
+            <div class="bg-gradient-to-br from-saffron-950/60 to-brand-950/80 border border-gold-500/40 rounded-2xl p-4">
+              <div class="text-xs text-gold-300 mb-1 flex items-center justify-between">
+                <span>Net Balance</span>
+                <i class="fa-solid fa-wallet text-gold-400"></i>
+              </div>
+              <div id="statNetBalance" class="text-lg sm:text-xl font-black text-gold-400 font-heading">₹0</div>
+              <div class="text-[10px] text-gold-200/80 mt-0.5">Available Funds</div>
+            </div>
+
+          </div>
+
+          <!-- Progress Bar Gauge -->
+          <div class="mt-5 bg-black/40 rounded-2xl p-4 border border-white/5 space-y-2">
+            <div class="flex justify-between text-xs font-semibold">
+              <span class="text-neutral-300">Target Collection Progress</span>
+              <span id="progressBarPercent" class="text-gold-400 font-bold">0% (₹0 / ₹1,08,000)</span>
+            </div>
+            <div class="w-full h-3 bg-neutral-900 rounded-full overflow-hidden p-0.5 border border-white/10">
+              <div id="progressBarFill" class="h-full bg-gradient-to-r from-saffron-500 via-gold-400 to-emerald-400 rounded-full transition-all duration-700" style="width: 0%;"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Quick Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="festive-card rounded-2xl p-5 space-y-3 cursor-pointer" onclick="window.app.switchView('contributors')">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-users text-gold-400"></i>
+                <span>Committee Contributions</span>
+              </span>
+              <span class="text-xs text-gold-400">View All →</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20">
+                <div class="text-[10px] text-emerald-300">Paid</div>
+                <div id="dashCountPaid" class="font-bold text-white text-sm">0</div>
+              </div>
+              <div class="bg-amber-950/40 p-2.5 rounded-xl border border-amber-500/20">
+                <div class="text-[10px] text-amber-300">Partial</div>
+                <div id="dashCountPartial" class="font-bold text-white text-sm">0</div>
+              </div>
+              <div class="bg-rose-950/40 p-2.5 rounded-xl border border-rose-500/20">
+                <div class="text-[10px] text-rose-300">Pending</div>
+                <div id="dashCountPending" class="font-bold text-white text-sm">18</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="festive-card rounded-2xl p-5 space-y-3 cursor-pointer" onclick="window.app.switchView('funds')">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-wallet text-gold-400"></i>
+                <span>Fund Pool Split</span>
+              </span>
+              <span class="text-xs text-gold-400">Manage →</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-purple-950/40 p-2.5 rounded-xl border border-purple-500/20">
+                <div class="text-[10px] text-purple-300">UPI / Bank</div>
+                <div id="dashUpiBal" class="font-bold text-white text-sm">₹0</div>
+              </div>
+              <div class="bg-amber-950/40 p-2.5 rounded-xl border border-amber-500/20">
+                <div class="text-[10px] text-amber-300">Cash in Hand</div>
+                <div id="dashCashBal" class="font-bold text-white text-sm">₹0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- VIEW 2: CONTRIBUTORS -->
+      <section id="viewContributors" class="app-view-container space-y-5" style="display: none;">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2 font-heading">
+              <i class="fa-solid fa-users text-gold-400"></i>
+              <span>Committee Contributors</span>
+            </h2>
+            <p class="text-xs text-neutral-400 mt-0.5">Click any member to record payment or view history</p>
+          </div>
+
+          <!-- Admin actions -->
+          <div class="flex items-center gap-2">
+            <div id="adminAddMemberBtnWrap" style="display: none;">
+              <button onclick="window.app && window.app.openAddMemberModal()" class="px-3.5 py-2 rounded-xl bg-saffron-600 hover:bg-saffron-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Add Member</span>
+              </button>
+            </div>
+
+            <div id="adminRecordPayBtnWrap" style="display: none;">
+              <button onclick="window.app && window.app.openAddPaymentModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/30 active:scale-95 cursor-pointer">
+                <i class="fa-solid fa-plus"></i>
+                <span>Record Payment</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+          <div class="relative w-full sm:flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs"></i>
+            <input type="text" id="inputSearchMember" placeholder="Search member name..." class="w-full pl-9 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-gold-500">
+          </div>
+
+          <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 text-xs">
+            <button class="member-filter-btn active px-3.5 py-2 rounded-xl bg-white/10 text-white font-bold border border-white/20 cursor-pointer whitespace-nowrap" data-filter="ALL">All (<span id="countFilterAll">18</span>)</button>
+            <button class="member-filter-btn px-3.5 py-2 rounded-xl bg-white/5 text-emerald-400 hover:bg-white/10 border border-emerald-500/20 cursor-pointer whitespace-nowrap" data-filter="PAID">Paid</button>
+            <button class="member-filter-btn px-3.5 py-2 rounded-xl bg-white/5 text-amber-400 hover:bg-white/10 border border-amber-500/20 cursor-pointer whitespace-nowrap" data-filter="PARTIAL">Partial</button>
+            <button class="member-filter-btn px-3.5 py-2 rounded-xl bg-white/5 text-rose-400 hover:bg-white/10 border border-rose-500/20 cursor-pointer whitespace-nowrap" data-filter="PENDING">Pending</button>
+          </div>
+        </div>
+
+        <!-- Members Grid -->
+        <div id="membersGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        </div>
+
+      </section>
+
+
+      <!-- VIEW 3: EXPENSES -->
+      <section id="viewExpenses" class="app-view-container space-y-5" style="display: none;">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2 font-heading">
+              <i class="fa-solid fa-receipt text-rose-400"></i>
+              <span>Itemized Festival Expenses</span>
+            </h2>
+            <p class="text-xs text-neutral-400 mt-0.5">All real expenditures logged by committee admins</p>
+          </div>
+
+          <div id="adminExpenseBtnWrap" style="display: none;">
+            <button onclick="window.app && window.app.openAddExpenseModal()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-rose-600/30 active:scale-95 cursor-pointer">
+              <i class="fa-solid fa-plus"></i>
+              <span>Add Expense</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-rose-950/30 border border-rose-500/20 rounded-2xl p-4 flex items-center justify-between">
+          <div class="text-xs text-rose-200 font-medium">Total Money Spent so far:</div>
+          <div id="statTotalSpentHeading" class="text-xl font-black text-rose-400 font-heading">₹0</div>
+        </div>
+
+        <div id="expensesList" class="space-y-3">
+        </div>
+
+      </section>
+
+
+      <!-- VIEW 4: UPI & CASH FUND POOL -->
+      <section id="viewFunds" class="app-view-container space-y-5" style="display: none;">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2 font-heading">
+              <i class="fa-solid fa-wallet text-gold-400"></i>
+              <span>Fund Distribution & Balances</span>
+            </h2>
+            <p class="text-xs text-neutral-400 mt-0.5">Live split between UPI Bank Account and Physical Cash in Hand</p>
+          </div>
+
+          <div id="adminTransferBtnWrap" style="display: none;">
+            <button onclick="window.app && window.app.openTransferModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-amber-600 hover:brightness-110 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95 cursor-pointer">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              <span>Transfer UPI ⇄ Cash</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <div class="bg-gradient-to-br from-purple-950/50 to-neutral-950/80 border border-purple-500/30 rounded-2xl p-5 flex items-center justify-between">
+            <div class="space-y-1">
+              <div class="text-xs text-purple-300 font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+                <span>Online / UPI Bank Pool</span>
+              </div>
+              <div id="statUpiTotal" class="text-3xl font-black text-purple-300 font-heading">₹0</div>
+              <div class="text-[11px] text-purple-200/60">PhonePe / GPay / Bank Account</div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl">
+              <i class="fa-solid fa-building-columns"></i>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-amber-950/50 to-neutral-950/80 border border-amber-500/30 rounded-2xl p-5 flex items-center justify-between">
+            <div class="space-y-1">
+              <div class="text-xs text-amber-300 font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Physical Cash in Hand</span>
+              </div>
+              <div id="statCashTotal" class="text-3xl font-black text-amber-300 font-heading">₹0</div>
+              <div class="text-[11px] text-amber-200/60">Held with Admins</div>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xl">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="p-4 bg-black/40 rounded-2xl border border-white/5 flex items-center justify-between text-xs text-neutral-300">
+          <span>Combined Net Fund Available:</span>
+          <strong id="statCombinedNet" class="text-gold-400 font-bold font-heading text-base">₹0</strong>
+        </div>
+
+      </section>
+
+
+      <!-- VIEW 5: ACTIVITY TRAIL -->
+      <section id="viewActivity" class="app-view-container space-y-5" style="display: none;">
+        
+        <div class="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2 font-heading">
+              <i class="fa-solid fa-clock-rotate-left text-gold-400"></i>
+              <span>Live Audit & Transaction Trail</span>
+            </h2>
+            <p class="text-xs text-neutral-400 mt-0.5">Transparent timestamped logs of payments, expenses, and fund transfers</p>
+          </div>
+
+          <button id="btnClearActivityLogs" onclick="window.app && window.app.clearActivityLogs()" style="display: none;" class="text-xs text-rose-400 hover:text-rose-300 underline font-semibold cursor-pointer">
+            Clear Logs
+          </button>
+        </div>
+
+        <div id="activityLogsContainer" class="space-y-3">
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <!-- MODALS -->
+
+  <!-- 1. ADD MEMBER MODAL -->
+  <div id="modalAddMember" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-gold-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Add New Member</h3>
+            <p class="text-xs text-neutral-400">Add committee member</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalAddMember').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="formAddNewMember" onsubmit="window.app && window.app.handleAddMember(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Member Full Name</label>
+          <input type="text" id="inputNewMemberName" required placeholder="e.g. Ramesh" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm text-white focus:outline-none focus:border-gold-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Target Contribution (₹)</label>
+          <input type="number" id="inputNewMemberTarget" value="6000" min="100" max="50000" required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm font-bold text-gold-400 focus:outline-none focus:border-gold-400">
+        </div>
+
+        <div class="flex items-center gap-2 bg-white/5 p-3 rounded-xl border border-white/10">
+          <input type="checkbox" id="inputNewMemberIsAdmin" class="w-4 h-4 rounded text-gold-500 focus:ring-0">
+          <label for="inputNewMemberIsAdmin" class="text-xs text-neutral-300 font-semibold cursor-pointer">Make this member an Admin (Edit access)</label>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('modalAddMember').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 rounded-xl text-xs font-bold transition-all cursor-pointer">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-saffron-600 hover:bg-saffron-500 text-white rounded-xl text-xs font-black transition-all shadow-lg cursor-pointer">Add Member</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+
+  <!-- 2. EDIT MEMBER MODAL -->
+  <div id="modalEditMember" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-gold-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-user-pen"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Edit Member</h3>
+            <p class="text-xs text-neutral-400">Change name or target</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalEditMember').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="formEditMember" onsubmit="window.app && window.app.handleSaveEditMember(event)" class="space-y-4">
+        <input type="hidden" id="editMemberId">
+        
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Member Full Name</label>
+          <input type="text" id="editMemberNameInput" required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm text-white focus:outline-none focus:border-gold-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Target Contribution (₹)</label>
+          <input type="number" id="editMemberTargetInput" min="100" max="50000" required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm font-bold text-gold-400 focus:outline-none focus:border-gold-400">
+        </div>
+
+        <div class="flex items-center gap-2 bg-white/5 p-3 rounded-xl border border-white/10">
+          <input type="checkbox" id="editMemberIsAdminInput" class="w-4 h-4 rounded text-gold-500 focus:ring-0">
+          <label for="editMemberIsAdminInput" class="text-xs text-neutral-300 font-semibold cursor-pointer">Admin Status</label>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('modalEditMember').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 rounded-xl text-xs font-bold transition-all cursor-pointer">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-gold-500 hover:bg-gold-400 text-neutral-950 rounded-xl text-xs font-black transition-all shadow-lg cursor-pointer">Save Changes</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+
+  <!-- 3. FUND TRANSFER MODAL -->
+  <div id="modalTransferFunds" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-purple-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Transfer Funds</h3>
+            <p class="text-xs text-neutral-400">Withdraw or deposit between UPI and Cash</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalTransferFunds').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="formTransferFunds" onsubmit="window.app && window.app.handleTransferFunds(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Transfer Direction</label>
+          <select id="transferDirectionSelect" required class="w-full px-3 py-2.5 bg-white/10 border border-white/20 rounded-xl text-xs text-white focus:outline-none focus:border-purple-400">
+            <option value="UPI_TO_CASH" class="bg-neutral-900">🏧 Withdraw from UPI → into Cash in Hand</option>
+            <option value="CASH_TO_UPI" class="bg-neutral-900">🏦 Deposit Cash → into UPI / Bank</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Transfer Amount (₹)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">₹</span>
+            <input type="number" id="transferAmountInput" min="1" max="100000" placeholder="e.g. 5000" required class="w-full pl-8 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-base font-bold text-purple-300 placeholder-neutral-500 focus:outline-none focus:border-purple-400">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Reason / Note (Optional)</label>
+          <input type="text" id="transferNoteInput" placeholder="e.g. ATM withdrawal for DJ advance" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-400">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('modalTransferFunds').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 rounded-xl text-xs font-bold transition-all cursor-pointer">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-amber-600 hover:brightness-110 text-white rounded-xl text-xs font-black transition-all shadow-lg cursor-pointer">Execute Transfer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- 4. RECORD PAYMENT MODAL -->
+  <div id="modalAddPayment" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-emerald-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Record Member Payment</h3>
+            <p class="text-xs text-neutral-400">Target is ₹6,000 per person</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalAddPayment').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="formRecordPayment" onsubmit="window.app && window.app.handleRecordPayment(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Select Member</label>
+          <select id="paymentMemberSelect" onchange="window.app && window.app.updateMemberPaymentReminder()" required class="w-full px-3 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-400">
+          </select>
+          <div id="memberTargetReminder" class="text-xs text-amber-300 mt-1 font-medium"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Amount Received (₹)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">₹</span>
+            <input type="number" id="paymentAmountInput" min="1" max="50000" placeholder="e.g. 6000" required class="w-full pl-8 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-base font-bold text-emerald-400 focus:outline-none focus:border-emerald-400">
+          </div>
+          <div class="flex items-center gap-1.5 mt-2">
+            <button type="button" onclick="document.getElementById('paymentAmountInput').value = 6000" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-xs text-neutral-300 border border-white/10 cursor-pointer">₹6,000</button>
+            <button type="button" onclick="document.getElementById('paymentAmountInput').value = 3000" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-xs text-neutral-300 border border-white/10 cursor-pointer">₹3,000</button>
+            <button type="button" onclick="document.getElementById('paymentAmountInput').value = 2000" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-xs text-neutral-300 border border-white/10 cursor-pointer">₹2,000</button>
+            <button type="button" onclick="document.getElementById('paymentAmountInput').value = 1000" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-xs text-neutral-300 border border-white/10 cursor-pointer">₹1,000</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="paymentMode" value="UPI" checked class="peer sr-only">
+            <div class="p-2.5 text-center rounded-xl bg-white/5 peer-checked:bg-purple-600/30 peer-checked:border-purple-500 border border-white/10 text-xs font-bold text-neutral-300 peer-checked:text-purple-300 transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-mobile-screen-button"></i>
+              <span>UPI / Bank</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="paymentMode" value="Cash" class="peer sr-only">
+            <div class="p-2.5 text-center rounded-xl bg-white/5 peer-checked:bg-amber-600/30 peer-checked:border-amber-500 border border-white/10 text-xs font-bold text-neutral-300 peer-checked:text-amber-300 transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-money-bill-wave"></i>
+              <span>Direct Cash</span>
+            </div>
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Payment Reference / Note (Optional)</label>
+          <input type="text" id="paymentNoteInput" placeholder="e.g. PhonePe to Pondu" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-400">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('modalAddPayment').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 rounded-xl text-xs font-bold transition-all cursor-pointer">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition-all shadow-lg cursor-pointer">Save Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- 5. EDIT PAYMENT MODAL -->
+  <div id="modalEditPayment" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-emerald-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Edit Payment</h3>
+            <p class="text-xs text-neutral-400">Correct payment details</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalEditPayment').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="formEditPayment" onsubmit="window.app && window.app.handleSaveEditPayment(event)" class="space-y-4">
+        <input type="hidden" id="editPaymentMemberId">
+        <input type="hidden" id="editPaymentId">
+        
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Member Name</label>
+          <input type="text" id="editPaymentMemberName" readonly class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-neutral-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Amount (₹)</label>
+          <input type="number" id="editPaymentAmountInput" min="1" max="50000" required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-base font-bold text-emerald-400 focus:outline-none focus:border-emerald-400">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="editPaymentMode" id="editPaymentModeUpi" value="UPI" class="peer sr-only">
+            <div class="p-2 text-center rounded-xl bg-white/5 peer-checked:bg-purple-600/30 peer-checked:border-purple-500 border border-white/10 text-xs font-bold text-neutral-300 peer-checked:text-purple-300">
+              UPI
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="editPaymentMode" id="editPaymentModeCash" value="Cash" class="peer sr-only">
+            <div class="p-2 text-center rounded-xl bg-white/5 peer-checked:bg-amber-600/30 peer-checked:border-amber-500 border border-white/10 text-xs font-bold text-neutral-300 peer-checked:text-amber-300">
+              Cash
+            </div>
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Reference / Note</label>
+          <input type="text" id="editPaymentNoteInput" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-400">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('modalEditPayment').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 rounded-xl text-xs font-bold cursor-pointer">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black cursor-pointer">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- 6. ADD EXPENSE MODAL -->
+  <div id="modalAddExpense" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-rose-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Add Festival Expense</h3>
+            <p class="text-xs text-neutral-400">Record festival cost</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalAddExpense').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="formAddExpense" onsubmit="window.app && window.app.handleAddExpense(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Expense Title / Item Description</label>
+          <input type="text" id="expenseTitleInput" required placeholder="e.g. Murti advance, Generator diesel, DJ sound, Flowers" class="w-full px-3 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-rose-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Amount Spent (₹)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">₹</span>
+            <input type="number" id="expenseAmountInput" min="1" max="200000" placeholder="e.g. 8500" required class="w-full pl-8 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-base font-bold text-rose-400 focus:outline-none focus:border-rose-400">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-neutral-300 mb-1">Paid From</label>
+            <select id="expenseModeSelect" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-400">
+              <option value="Cash" class="bg-neutral-900">💵 Cash in Hand</option>
+              <option value="UPI" class="bg-neutral-900">📱 UPI / Bank</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-neutral-300 mb-1">Paid By</label>
+            <select id="expensePaidBySelect" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-400">
+              <option value="Pondu" class="bg-neutral-900">Pondu</option>
+              <option value="Mounesh" class="bg-neutral-900">Mounesh</option>
+              <option value="Association Fund" class="bg-neutral-900">Association Fund</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Bill / Vendor Details (Optional)</label>
+          <input type="text" id="expenseNoteInput" placeholder="e.g. Paid to vendor Ravi" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-rose-400">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('modalAddExpense').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 rounded-xl text-xs font-bold transition-all cursor-pointer">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black transition-all shadow-lg cursor-pointer">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- 7. EDIT EXPENSE MODAL -->
+  <div id="modalEditExpense" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-rose-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Edit Festival Expense</h3>
+            <p class="text-xs text-neutral-400">Correct bill description or amount</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalEditExpense').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="formEditExpense" onsubmit="window.app && window.app.handleSaveEditExpense(event)" class="space-y-4">
+        <input type="hidden" id="editExpenseId">
+        
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Expense Title / Item</label>
+          <input type="text" id="editExpenseTitleInput" required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-sm text-white focus:outline-none focus:border-rose-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Amount Spent (₹)</label>
+          <input type="number" id="editExpenseAmountInput" min="1" max="200000" required class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-base font-bold text-rose-400 focus:outline-none focus:border-rose-400">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-neutral-300 mb-1">Paid From</label>
+            <select id="editExpenseModeSelect" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-400">
+              <option value="Cash" class="bg-neutral-900">💵 Cash in Hand</option>
+              <option value="UPI" class="bg-neutral-900">📱 UPI / Bank</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-neutral-300 mb-1">Paid By</label>
+            <select id="editExpensePaidBySelect" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-400">
+              <option value="Pondu" class="bg-neutral-900">Pondu</option>
+              <option value="Mounesh" class="bg-neutral-900">Mounesh</option>
+              <option value="Association Fund" class="bg-neutral-900">Association Fund</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Bill / Vendor Details (Optional)</label>
+          <input type="text" id="editExpenseNoteInput" class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-400">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('modalEditExpense').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 rounded-xl text-xs font-bold cursor-pointer">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black cursor-pointer">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- 8. MEMBER DETAIL & HISTORY MODAL -->
+  <div id="modalMemberDetail" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-brand-900 via-brand-950 to-black border border-gold-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-saffron-500/20 text-saffron-300 font-bold flex items-center justify-center text-lg">
+            👤
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 id="modalMemberName" class="text-base font-bold text-white font-heading">Member Name</h3>
+              <button type="button" id="btnOpenEditMember" class="hidden text-gold-400 hover:text-gold-300 p-1 text-xs cursor-pointer" title="Edit Member Name/Target">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+            </div>
+            <span id="modalMemberStatusBadge" class="text-[11px] px-2 py-0.5 rounded-full font-bold"></span>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalMemberDetail').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 bg-white/5 p-3 rounded-2xl border border-white/10 text-center">
+        <div>
+          <div class="text-[11px] text-neutral-400">Target</div>
+          <div id="modalMemberTarget" class="text-sm font-bold text-white">₹6,000</div>
+        </div>
+        <div>
+          <div class="text-[11px] text-emerald-400">Paid</div>
+          <div id="modalMemberPaid" class="text-sm font-bold text-emerald-400">₹0</div>
+        </div>
+        <div>
+          <div class="text-[11px] text-rose-400">Balance</div>
+          <div id="modalMemberBalance" class="text-sm font-bold text-rose-400">₹6,000</div>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <div class="text-xs font-semibold text-neutral-300">Payment Transactions:</div>
+        <div id="modalMemberPaymentsList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+        </div>
+      </div>
+
+      <div class="pt-2 flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnMemberQuickPay" class="hidden flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all cursor-pointer">
+            + Record Payment
+          </button>
+          <button type="button" onclick="document.getElementById('modalMemberDetail').style.display = 'none'" class="flex-1 py-2.5 bg-white/10 hover:bg-white/15 text-neutral-300 font-bold rounded-xl text-xs transition-all cursor-pointer">
+            Close
+          </button>
+        </div>
+
+        <button type="button" id="btnDeleteMember" class="hidden w-full py-2 bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer">
+          <i class="fa-solid fa-trash-can mr-1"></i> Remove Member from Committee
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- 9. WHATSAPP SHARE MODAL -->
+  <div id="modalWhatsAppShare" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-emerald-950 via-neutral-950 to-black border border-emerald-500/40 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base font-bold">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">WhatsApp Group Update</h3>
+            <p class="text-xs text-emerald-300/70">Copy status report for committee members</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalWhatsAppShare').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div>
+        <textarea id="textareaWhatsApp" rows="10" readonly class="w-full p-3.5 bg-black/60 border border-white/10 rounded-2xl text-xs font-mono text-emerald-200 focus:outline-none select-all leading-relaxed"></textarea>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" onclick="window.app && window.app.copyWhatsAppText()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer">
+          <i class="fa-regular fa-copy"></i>
+          <span id="copyBtnText">Copy to Clipboard</span>
+        </button>
+        <a id="btnDirectWhatsAppLink" href="#" target="_blank" class="px-4 py-2.5 bg-emerald-500 text-neutral-950 font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:brightness-110 transition-all cursor-pointer">
+          <i class="fa-brands fa-whatsapp text-base"></i>
+          <span>Open WhatsApp</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- 10. SETTINGS & BACKUP MODAL -->
+  <div id="modalCloudSync" style="display: none;" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border border-amber-500/40 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 animate-scaleUp">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white font-heading">Settings & Security</h3>
+            <p class="text-xs text-neutral-400">Change Admin PIN & Backup Data</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modalCloudSync').style.display = 'none'" class="text-neutral-400 hover:text-white text-lg cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs text-neutral-300">
+        <div>
+          <label class="block text-xs font-semibold text-neutral-300 mb-1">Change Admin PIN</label>
+          <div class="flex gap-2">
+            <input type="password" id="inputNewAdminPin" placeholder="Enter new PIN" maxlength="6" class="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-xs text-white">
+            <button onclick="window.app && window.app.handleSaveNewPin()" class="px-4 py-2 bg-amber-500 text-neutral-950 font-bold rounded-xl text-xs hover:brightness-110 cursor-pointer">Save PIN</button>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-white/10 flex flex-wrap gap-2">
+          <button onclick="window.app && window.app.exportDataJSON()" class="flex-1 py-2 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-download"></i> Backup JSON File
+          </button>
+          <label class="flex-1 py-2 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer text-center">
+            <i class="fa-solid fa-upload"></i> Restore Backup
+            <input type="file" id="inputImportJSON" onchange="window.app && window.app.importDataJSON(event)" accept=".json" class="hidden">
+          </label>
+          <button id="btnResetData" onclick="window.app && window.app.resetData()" class="px-3 py-2 bg-red-900/40 hover:bg-red-800/60 text-red-300 border border-red-500/30 font-semibold rounded-xl text-xs cursor-pointer">
+            Reset Data
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>
