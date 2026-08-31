@@ -18,19 +18,20 @@ const DEFAULT_MEMBERS = [
   { id: 'm11', name: 'Anil', target: 6000, paid: 0, payments: [], isAdmin: false },
   { id: 'm12', name: 'Karthik', target: 6000, paid: 0, payments: [], isAdmin: false },
   { id: 'm13', name: 'Harshith', target: 6000, paid: 0, payments: [], isAdmin: false },
-  { id: 'm14', name: 'prasad', target: 6000, paid: 0, payments: [], isAdmin: false },
-  { id: 'm15', name: 'Sathnarayana', target: 6000, paid: 0, payments: [], isAdmin: false },
-  { id: 'm16', name: 'Dharma', target: 6000, paid: 0, payments: [], isAdmin: false }
+  { id: 'm14', name: 'Sathnarayana', target: 6000, paid: 0, payments: [], isAdmin: false },
+  { id: 'm15', name: 'Dharma', target: 6000, paid: 0, payments: [], isAdmin: false },
+  { id: 'm16', name: 'Prasad', target: 6000, paid: 0, payments: [], isAdmin: false }
 ];
 
-// Optional Firebase Cloud Configuration
+// Production Firebase Cloud Configuration for Shree Siddhi Vinayak Youth Association
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDhyKfdw4pZLBg7GA9lKsg9jn2a62NdHF8",
+  authDomain: "ssvya-sasalmari-2026.firebaseapp.com",
+  projectId: "ssvya-sasalmari-2026",
+  storageBucket: "ssvya-sasalmari-2026.firebasestorage.app",
+  messagingSenderId: "8818727392",
+  appId: "1:8818727392:web:f6e1c8126baadc86b83385",
+  measurementId: "G-EN4SRMTKW2"
 };
 
 class AppStore {
@@ -42,9 +43,28 @@ class AppStore {
     this.currentUser = null;
     this.db = null;
     this.isCloudConnected = false;
+    this.unsubscribeFirestore = null;
 
     this.state = this.loadState();
     this.initFirebase();
+  }
+
+  getFirebaseConfig() {
+    try {
+      const savedConfig = localStorage.getItem('ssvya_firebase_config');
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        if (parsed && parsed.apiKey && parsed.apiKey !== "YOUR_API_KEY") {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading saved firebase config', e);
+    }
+    if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
+      return FIREBASE_CONFIG;
+    }
+    return null;
   }
 
   loadState() {
@@ -89,11 +109,19 @@ class AppStore {
     const originalMembers = state.members;
     state.members = originalMembers.filter(member => !removedNames.has(member.name.trim().toLowerCase()));
 
+    let changed = state.members.length !== originalMembers.length;
+
     if (!state.members.some(member => member.name.trim().toLowerCase() === 'dharma')) {
-      state.members.push({ id: 'm16', name: 'Dharma', target: 6000, paid: 0, payments: [], isAdmin: false });
+      state.members.push({ id: 'm15', name: 'Dharma', target: 6000, paid: 0, payments: [], isAdmin: false });
+      changed = true;
     }
 
-    return state.members.length !== originalMembers.length || !originalMembers.some(member => member.name.trim().toLowerCase() === 'dharma');
+    if (!state.members.some(member => member.name.trim().toLowerCase() === 'prasad')) {
+      state.members.push({ id: 'm16', name: 'Prasad', target: 6000, paid: 0, payments: [], isAdmin: false });
+      changed = true;
+    }
+
+    return changed;
   }
 
   saveState() {
@@ -106,37 +134,59 @@ class AppStore {
   }
 
   initFirebase() {
-    if (typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") {
+    const config = this.getFirebaseConfig();
+    if (typeof firebase !== 'undefined' && config && config.apiKey && config.apiKey !== "YOUR_API_KEY") {
       try {
+        if (this.unsubscribeFirestore) {
+          this.unsubscribeFirestore();
+          this.unsubscribeFirestore = null;
+        }
+
         if (!firebase.apps.length) {
-          firebase.initializeApp(FIREBASE_CONFIG);
+          firebase.initializeApp(config);
         }
         this.db = firebase.firestore();
         this.isCloudConnected = true;
 
-        this.db.collection('ssvya_association').doc('camp_2026')
+        this.unsubscribeFirestore = this.db.collection('ssvya_association').doc('camp_2026')
           .onSnapshot((doc) => {
             if (doc.exists) {
-              this.state = doc.data();
-              if (this.migrateMemberList(this.state)) {
-                this.syncToCloud();
+              const remoteData = doc.data();
+              if (remoteData && remoteData.members) {
+                this.state = remoteData;
+                this.migrateMemberList(this.state);
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
+                if (window.app) window.app.render();
               }
-              localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
-              if (window.app) window.app.render();
             } else {
+              // Initial push to cloud
               this.syncToCloud();
             }
-          }, (err) => console.warn(err));
+            this.isCloudConnected = true;
+            if (window.app) window.app.updateCloudStatus(true);
+          }, (err) => {
+            console.warn("Firestore snapshot error:", err);
+            this.isCloudConnected = false;
+            if (window.app) window.app.updateCloudStatus(false, err.message);
+          });
       } catch (err) {
         console.error("Firebase init failed:", err);
+        this.isCloudConnected = false;
+        if (window.app) window.app.updateCloudStatus(false, err.message);
       }
+    } else {
+      this.isCloudConnected = false;
+      if (window.app) window.app.updateCloudStatus(false);
     }
   }
 
   syncToCloud() {
     if (this.db && this.isCloudConnected) {
       this.db.collection('ssvya_association').doc('camp_2026').set(this.state)
-        .catch(err => console.error("Cloud sync error:", err));
+        .catch(err => {
+          console.error("Cloud sync error:", err);
+          if (window.app) window.app.showToast("Cloud sync error: " + err.message, "info");
+        });
     }
   }
 
@@ -175,15 +225,54 @@ class AppStore {
     return { success: true, user: this.currentUser };
   }
 
+  loginMemberByUsername(username, password) {
+    const member = this.state.members.find(m => m.name.toLowerCase() === username.toLowerCase());
+    if (!member) return { success: false, message: 'Invalid username' };
+
+    const cleanPass = password.trim().toLowerCase();
+    const adminPin = this.getAdminPin();
+    const memberName = member.name.toLowerCase();
+
+    const isMasterAdminPin = cleanPass === adminPin;
+    const isMemberPass = cleanPass === '2026' || cleanPass === memberName;
+
+    if (member.isAdmin) {
+      if (!isMasterAdminPin) {
+        return { success: false, message: 'Incorrect Admin PIN!' };
+      }
+      this.currentUser = { ...member, activeAdmin: true };
+    } else {
+      if (!isMemberPass && !isMasterAdminPin) {
+        return { success: false, message: 'Incorrect password!' };
+      }
+      this.currentUser = { ...member, activeAdmin: isMasterAdminPin };
+    }
+
+    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(this.currentUser));
+    return { success: true, user: this.currentUser };
+  }
+
   restoreSession() {
     try {
       const saved = sessionStorage.getItem(this.SESSION_KEY);
-      if (saved) {
-        this.currentUser = JSON.parse(saved);
-        return this.currentUser;
+      if (!saved) return null;
+
+      const parsed = JSON.parse(saved);
+      const member = this.state.members.find(m => m.id === parsed.id);
+      if (!member) {
+        sessionStorage.removeItem(this.SESSION_KEY);
+        return null;
       }
-    } catch (e) {}
-    return null;
+
+      this.currentUser = {
+        ...member,
+        activeAdmin: Boolean(parsed.activeAdmin)
+      };
+      return this.currentUser;
+    } catch (e) {
+      sessionStorage.removeItem(this.SESSION_KEY);
+      return null;
+    }
   }
 
   logout() {
@@ -501,8 +590,8 @@ class AppUI {
   }
 
   init() {
-    this.populateLoginDropdown();
     this.bindEvents();
+    this.updateCloudStatus(store.isCloudConnected);
 
     const existing = store.restoreSession();
     if (existing) {
@@ -513,21 +602,24 @@ class AppUI {
   }
 
   populateLoginDropdown() {
-    const select = document.getElementById('loginMemberSelect');
-    if (!select) return;
-
-    select.innerHTML = store.state.members.map(m => {
-      return `<option value="${m.id}" class="${m.isAdmin ? 'login-admin-option' : 'login-member-option'}">
-        ${m.name} ${m.isAdmin ? '(Admin)' : '(Member)'}
-      </option>`;
-    }).join('');
+    // No longer needed - username is entered as text
   }
 
   showLoginGate() {
+    store.currentUser = null;
+    sessionStorage.removeItem(store.SESSION_KEY);
     const gate = document.getElementById('loginGateScreen');
     const main = document.getElementById('mainAppContent');
     if (gate) gate.style.display = 'flex';
     if (main) main.style.display = 'none';
+    
+    // Clear login form
+    const usernameInput = document.getElementById('loginUsernameInput');
+    const passInput = document.getElementById('loginPasswordInput');
+    const errBox = document.getElementById('loginErrorMsg');
+    if (usernameInput) usernameInput.value = '';
+    if (passInput) passInput.value = '';
+    if (errBox) errBox.style.display = 'none';
   }
 
   showMainApp() {
@@ -542,10 +634,6 @@ class AppUI {
 
   // View switching (only 1 tab shown at a time)
   switchView(viewName) {
-    if (!store.currentUser?.activeAdmin && viewName !== 'dashboard' && viewName !== 'contributors') {
-      viewName = 'dashboard';
-    }
-
     this.currentView = viewName;
 
     // Hide all view sections
@@ -586,17 +674,26 @@ class AppUI {
 
   handleMemberLogin(e) {
     if (e) e.preventDefault();
-    const select = document.getElementById('loginMemberSelect');
-    const input = document.getElementById('loginPasswordInput');
+    const usernameInput = document.getElementById('loginUsernameInput');
+    const passInput = document.getElementById('loginPasswordInput');
     const errBox = document.getElementById('loginErrorMsg');
 
-    const memberId = select ? select.value : '';
-    const pass = input ? input.value : '';
+    const username = usernameInput ? usernameInput.value.trim() : '';
+    const pass = passInput ? passInput.value : '';
 
-    const res = store.loginMember(memberId, pass);
+    // Clear old session completely
+    store.currentUser = null;
+    sessionStorage.removeItem(store.SESSION_KEY);
+
+    const res = store.loginMemberByUsername(username, pass);
     if (res.success) {
       if (errBox) errBox.style.display = 'none';
-      if (input) input.value = '';
+      if (passInput) passInput.value = '';
+      if (usernameInput) usernameInput.value = '';
+      
+      // Ensure store.currentUser is set with fresh member data
+      store.currentUser = res.user;
+      
       this.showMainApp();
       this.showToast(`🙏 Welcome ${res.user.name}!`, 'success');
       this.triggerConfetti();
@@ -610,7 +707,6 @@ class AppUI {
 
   logout() {
     store.logout();
-    this.populateLoginDropdown();
     this.showLoginGate();
     this.showToast('Logged out securely.', 'info');
   }
@@ -647,7 +743,6 @@ class AppUI {
 
     store.addMember(name, target, isAdmin);
     document.getElementById('modalAddMember').style.display = 'none';
-    this.populateLoginDropdown();
     this.render();
     this.showToast(`Member ${name} added!`, 'success');
   }
@@ -680,7 +775,6 @@ class AppUI {
 
     store.editMember(id, name, target, isAdmin);
     document.getElementById('modalEditMember').style.display = 'none';
-    this.populateLoginDropdown();
     this.render();
     this.showToast(`Member details updated!`, 'success');
   }
@@ -1005,7 +1099,6 @@ class AppUI {
           if (confirm(`Are you sure you want to remove ${member.name} from the committee?`)) {
             store.deleteMember(member.id);
             modal.style.display = 'none';
-            this.populateLoginDropdown();
             this.render();
             this.showToast(`Member ${member.name} removed`, 'info');
           }
@@ -1095,7 +1188,99 @@ class AppUI {
 
   openCloudModal() {
     const modal = document.getElementById('modalCloudSync');
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+      modal.style.display = 'flex';
+      this.updateCloudStatus(store.isCloudConnected);
+    }
+  }
+
+  updateCloudStatus(isConnected, errMessage = '') {
+    const mobileBadge = document.getElementById('mobileCloudBadge');
+    const desktopBadge = document.getElementById('desktopCloudBadge');
+    const modalBadge = document.getElementById('modalCloudStatusBadge');
+    const configInput = document.getElementById('inputFirebaseConfigText');
+
+    if (mobileBadge) {
+      mobileBadge.innerHTML = isConnected
+        ? `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span class="text-emerald-300">Live</span>`
+        : `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-amber-300">Local</span>`;
+      mobileBadge.className = isConnected
+        ? "cloud-status-indicator px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 flex items-center gap-1.5 cursor-pointer"
+        : "cloud-status-indicator px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-amber-300 flex items-center gap-1.5 cursor-pointer";
+    }
+
+    if (desktopBadge) {
+      desktopBadge.innerHTML = isConnected
+        ? `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span class="text-emerald-300">Live Cloud Synced</span>`
+        : `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-amber-300">Offline / Local Mode</span>`;
+      desktopBadge.className = isConnected
+        ? "cloud-status-indicator mt-2 w-full py-1.5 px-3 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/30 text-[11px] font-semibold text-emerald-300 flex items-center justify-center gap-2 transition-all cursor-pointer"
+        : "cloud-status-indicator mt-2 w-full py-1.5 px-3 rounded-xl bg-black/40 hover:bg-black/60 border border-white/10 text-[11px] font-semibold text-amber-300 flex items-center justify-center gap-2 transition-all cursor-pointer";
+    }
+
+    if (modalBadge) {
+      modalBadge.innerHTML = isConnected
+        ? `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span class="text-emerald-300">Connected (Realtime Live)</span>`
+        : `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-amber-300">Offline / Not Connected</span>`;
+      modalBadge.className = isConnected
+        ? "text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5"
+        : "text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 flex items-center gap-1.5";
+    }
+
+    if (configInput && !configInput.value.trim()) {
+      const existing = store.getFirebaseConfig();
+      if (existing) {
+        configInput.value = JSON.stringify(existing, null, 2);
+      }
+    }
+  }
+
+  handleSaveFirebaseConfig() {
+    const input = document.getElementById('inputFirebaseConfigText');
+    if (!input || !input.value.trim()) {
+      alert('Please paste your Firebase configuration snippet or JSON.');
+      return;
+    }
+
+    let configText = input.value.trim();
+    let configObj = null;
+
+    try {
+      configObj = JSON.parse(configText);
+    } catch (e) {
+      try {
+        const cleanJS = configText.replace(/const\s+firebaseConfig\s*=\s*/g, '').replace(/let\s+firebaseConfig\s*=\s*/g, '').replace(/var\s+firebaseConfig\s*=\s*/g, '').replace(/;$/, '');
+        configObj = new Function(`return (${cleanJS});`)();
+      } catch (err) {
+        alert('Invalid configuration format. Please paste valid JSON or the firebaseConfig snippet.');
+        return;
+      }
+    }
+
+    if (!configObj || !configObj.apiKey) {
+      alert('Configuration must include an apiKey and projectId.');
+      return;
+    }
+
+    localStorage.setItem('ssvya_firebase_config', JSON.stringify(configObj));
+    store.initFirebase();
+    this.updateCloudStatus(store.isCloudConnected);
+    this.showToast('Firebase credentials saved! Connecting to Central Cloud...', 'success');
+  }
+
+  handleDisconnectFirebase() {
+    if (confirm('Disconnect from Central Cloud Database and switch to Local Storage?')) {
+      localStorage.removeItem('ssvya_firebase_config');
+      store.isCloudConnected = false;
+      if (store.unsubscribeFirestore) {
+        store.unsubscribeFirestore();
+        store.unsubscribeFirestore = null;
+      }
+      const input = document.getElementById('inputFirebaseConfigText');
+      if (input) input.value = '';
+      this.updateCloudStatus(false);
+      this.showToast('Cloud disconnected. Switched to offline local storage.', 'info');
+    }
   }
 
   handleSaveNewPin() {
@@ -1132,7 +1317,6 @@ class AppUI {
         if (imported.members && Array.isArray(imported.members)) {
           store.state = imported;
           store.saveState();
-          this.populateLoginDropdown();
           this.render();
           document.getElementById('modalCloudSync').style.display = 'none';
           this.showToast('Data restored successfully!', 'success');
@@ -1152,7 +1336,6 @@ class AppUI {
       localStorage.removeItem(store.STORAGE_KEY);
       store.state = store.loadState();
       store.saveState();
-      this.populateLoginDropdown();
       this.render();
       document.getElementById('modalCloudSync').style.display = 'none';
       this.showToast('Data reset to default', 'info');
@@ -1194,6 +1377,7 @@ class AppUI {
 
   render() {
     this.updateUserHeader();
+    this.updateCloudStatus(store.isCloudConnected);
     this.renderMetrics();
     this.renderMembers();
     this.renderExpenses();
@@ -1243,14 +1427,12 @@ class AppUI {
 
     ['expenses', 'funds', 'activity'].forEach(view => {
       const navButton = document.getElementById(`navBtn-${view}`);
-      if (navButton) navButton.style.display = user.activeAdmin ? '' : 'none';
+      if (navButton) navButton.style.display = '';
     });
   }
 
   renderMetrics() {
-    const m = store.currentUser && !store.currentUser.activeAdmin
-      ? this.getMemberMetrics(store.currentUser)
-      : store.getMetrics();
+    const m = store.getMetrics();
 
     const targetEl = document.getElementById('statTotalTarget');
     const targetSub = document.getElementById('statTargetSub');
@@ -1337,9 +1519,18 @@ class AppUI {
     if (!grid) return;
 
     const isAdmin = Boolean(store.currentUser && store.currentUser.activeAdmin);
-    let list = isAdmin
-      ? store.state.members
-      : store.state.members.filter(member => member.id === store.currentUser?.id);
+    const currentMember = store.currentUser && !store.currentUser.activeAdmin
+      ? {
+          id: store.currentUser.id,
+          name: store.currentUser.name || 'Member',
+          target: Number(store.currentUser.target) || 6000,
+          paid: Number(store.currentUser.paid) || 0,
+          isAdmin: false,
+          payments: Array.isArray(store.currentUser.payments) ? store.currentUser.payments : []
+        }
+      : null;
+
+    let list = store.state.members;
 
     if (this.searchQuery) {
       list = list.filter(m => m.name.toLowerCase().includes(this.searchQuery));
@@ -1353,8 +1544,49 @@ class AppUI {
       list = list.filter(m => !(m.paid || 0));
     }
 
+    const currentMemberSummary = currentMember ? (() => {
+      const paid = Number(currentMember.paid) || 0;
+      const target = Number(currentMember.target) || 6000;
+      const remaining = Math.max(0, target - paid);
+      const isPaid = paid >= target;
+      const isPartial = paid > 0 && !isPaid;
+      const badgeClass = isPaid
+        ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30'
+        : isPartial
+          ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30'
+          : 'bg-rose-950/60 text-rose-300 border border-rose-500/30';
+      const statusLabel = isPaid ? 'Paid in Full' : isPartial ? `Partial • Remaining ₹${remaining.toLocaleString('en-IN')}` : 'Pending';
+
+      return `
+        <div class="col-span-full rounded-2xl border border-gold-500/30 bg-gradient-to-r from-gold-500/10 to-emerald-500/10 p-4 mb-3">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div class="text-[10px] uppercase tracking-[0.2em] text-gold-300 font-bold">Your contribution</div>
+              <h3 class="text-lg font-black text-white mt-1">${currentMember.name}</h3>
+            </div>
+            <span class="text-[11px] px-2.5 py-1 rounded-full font-bold ${badgeClass}">${statusLabel}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+            <div class="bg-black/30 rounded-xl p-2.5 border border-white/5">
+              <div class="text-[10px] text-neutral-400">Target</div>
+              <div class="text-sm font-black text-white">₹${target.toLocaleString('en-IN')}</div>
+            </div>
+            <div class="bg-black/30 rounded-xl p-2.5 border border-white/5">
+              <div class="text-[10px] text-neutral-400">Paid</div>
+              <div class="text-sm font-black text-emerald-400">₹${paid.toLocaleString('en-IN')}</div>
+            </div>
+            <div class="bg-black/30 rounded-xl p-2.5 border border-white/5">
+              <div class="text-[10px] text-neutral-400">Balance</div>
+              <div class="text-sm font-black ${remaining > 0 ? 'text-rose-400' : 'text-neutral-300'}">₹${remaining.toLocaleString('en-IN')}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    })() : '';
+
     if (list.length === 0) {
       grid.innerHTML = `
+        ${currentMemberSummary}
         <div class="col-span-full py-10 text-center text-neutral-400 bg-black/30 border border-dashed border-white/10 rounded-2xl">
           <i class="fa-solid fa-user-xmark text-2xl text-neutral-500 mb-2"></i>
           <p class="text-xs">No committee members found</p>
@@ -1363,81 +1595,83 @@ class AppUI {
       return;
     }
 
-    grid.innerHTML = list.map(m => {
-      const paid = Number(m.paid) || 0;
-      const target = Number(m.target) || 6000;
-      const remaining = Math.max(0, target - paid);
-      const isPaid = paid >= target;
-      const isPartial = paid > 0 && !isPaid;
-      const progress = Math.min(100, Math.round((paid / target) * 100));
+    grid.innerHTML = `
+      ${currentMemberSummary}
+      ${list.map(m => {
+        const paid = Number(m.paid) || 0;
+        const target = Number(m.target) || 6000;
+        const remaining = Math.max(0, target - paid);
+        const isPaid = paid >= target;
+        const isPartial = paid > 0 && !isPaid;
+        const progress = Math.min(100, Math.round((paid / target) * 100));
 
-      let badgeHtml = '';
-      if (isPaid) {
-        badgeHtml = `<span class="badge-paid px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
-          <i class="fa-solid fa-check"></i> Paid
-        </span>`;
-      } else if (isPartial) {
-        badgeHtml = `<span class="badge-partial px-2 py-0.5 rounded-full text-[10px] font-bold">
-          Partial (Rem: ₹${remaining.toLocaleString('en-IN')})
-        </span>`;
-      } else {
-        badgeHtml = `<span class="badge-pending px-2 py-0.5 rounded-full text-[10px] font-bold">
-          Pending
-        </span>`;
-      }
+        let badgeHtml = '';
+        if (isPaid) {
+          badgeHtml = `<span class="badge-paid px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
+            <i class="fa-solid fa-check"></i> Paid
+          </span>`;
+        } else if (isPartial) {
+          badgeHtml = `<span class="badge-partial px-2 py-0.5 rounded-full text-[10px] font-bold">
+            Partial (Rem: ₹${remaining.toLocaleString('en-IN')})
+          </span>`;
+        } else {
+          badgeHtml = `<span class="badge-pending px-2 py-0.5 rounded-full text-[10px] font-bold">
+            Pending
+          </span>`;
+        }
 
-      const lastPayment = m.payments && m.payments.length > 0 ? m.payments[m.payments.length - 1] : null;
+        const lastPayment = m.payments && m.payments.length > 0 ? m.payments[m.payments.length - 1] : null;
 
-      return `
-        <div class="festive-card rounded-2xl p-4 flex flex-col justify-between space-y-3 cursor-pointer group" onclick="window.app.showMemberDetail('${m.id}')">
-          
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr ${isPaid ? 'from-emerald-600 to-teal-400' : isPartial ? 'from-amber-600 to-yellow-400' : 'from-rose-700 to-orange-500'} flex items-center justify-center text-white text-xs font-black shadow-md font-heading">
-                ${m.name.charAt(0).toUpperCase()}
+        return `
+          <div class="festive-card rounded-2xl p-4 flex flex-col justify-between space-y-3 cursor-pointer group" onclick="window.app.showMemberDetail('${m.id}')">
+            
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr ${isPaid ? 'from-emerald-600 to-teal-400' : isPartial ? 'from-amber-600 to-yellow-400' : 'from-rose-700 to-orange-500'} flex items-center justify-center text-white text-xs font-black shadow-md font-heading">
+                  ${m.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-white group-hover:text-gold-300 transition-all flex items-center gap-1.5 font-heading">
+                    <span>${m.name}</span>
+                    ${m.isAdmin ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30 font-semibold">Admin</span>` : ''}
+                  </h4>
+                  <div class="text-[10px] text-neutral-400">Target: ₹${target.toLocaleString('en-IN')}</div>
+                </div>
               </div>
-              <div>
-                <h4 class="text-sm font-bold text-white group-hover:text-gold-300 transition-all flex items-center gap-1.5 font-heading">
-                  <span>${m.name}</span>
-                  ${m.isAdmin ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30 font-semibold">Admin</span>` : ''}
-                </h4>
-                <div class="text-[10px] text-neutral-400">Target: ₹${target.toLocaleString('en-IN')}</div>
+              ${badgeHtml}
+            </div>
+
+            <div class="space-y-1 bg-black/40 p-2 rounded-xl border border-white/5">
+              <div class="flex justify-between text-[11px] font-semibold">
+                <span class="text-emerald-400">Paid: ₹${paid.toLocaleString('en-IN')}</span>
+                <span class="${remaining > 0 ? 'text-rose-400' : 'text-neutral-400'}">
+                  ${remaining > 0 ? `Bal: ₹${remaining.toLocaleString('en-IN')}` : 'Settled'}
+                </span>
+              </div>
+              <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r ${isPaid ? 'from-emerald-500 to-teal-400' : 'from-saffron-500 to-amber-400'} rounded-full transition-all duration-500" style="width: ${progress}%"></div>
               </div>
             </div>
-            ${badgeHtml}
-          </div>
 
-          <div class="space-y-1 bg-black/40 p-2 rounded-xl border border-white/5">
-            <div class="flex justify-between text-[11px] font-semibold">
-              <span class="text-emerald-400">Paid: ₹${paid.toLocaleString('en-IN')}</span>
-              <span class="${remaining > 0 ? 'text-rose-400' : 'text-neutral-400'}">
-                ${remaining > 0 ? `Bal: ₹${remaining.toLocaleString('en-IN')}` : 'Settled'}
+            <div class="flex items-center justify-between text-[10px] text-neutral-400 pt-0.5 border-t border-white/5">
+              <span>
+                ${lastPayment ? `<i class="fa-solid fa-clock-rotate-left mr-1 text-[9px]"></i>₹${lastPayment.amount} (${lastPayment.mode})` : 'No payments yet'}
               </span>
-            </div>
-            <div class="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r ${isPaid ? 'from-emerald-500 to-teal-400' : 'from-saffron-500 to-amber-400'} rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+
+              ${isAdmin ? `
+                <button onclick="event.stopPropagation(); window.app.openAddPaymentModal('${m.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 font-bold border border-emerald-500/30 text-[10px] flex items-center gap-1 transition-all cursor-pointer">
+                  <i class="fa-solid fa-plus text-[9px]"></i> Pay
+                </button>
+              ` : `
+                <span class="text-gold-400/80 text-[10px] font-medium flex items-center gap-1">
+                  View <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                </span>
+              `}
             </div>
           </div>
-
-          <div class="flex items-center justify-between text-[10px] text-neutral-400 pt-0.5 border-t border-white/5">
-            <span>
-              ${lastPayment ? `<i class="fa-solid fa-clock-rotate-left mr-1 text-[9px]"></i>₹${lastPayment.amount} (${lastPayment.mode})` : 'No payments yet'}
-            </span>
-
-            ${isAdmin ? `
-              <button onclick="event.stopPropagation(); window.app.openAddPaymentModal('${m.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 font-bold border border-emerald-500/30 text-[10px] flex items-center gap-1 transition-all cursor-pointer">
-                <i class="fa-solid fa-plus text-[9px]"></i> Pay
-              </button>
-            ` : `
-              <span class="text-gold-400/80 text-[10px] font-medium flex items-center gap-1">
-                View <i class="fa-solid fa-chevron-right text-[8px]"></i>
-              </span>
-            `}
-          </div>
-
-        </div>
-      `;
-    }).join('');
+        `;
+      }).join('')}
+    `;
   }
 
   renderExpenses() {
